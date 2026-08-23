@@ -3,13 +3,14 @@ require 'etc'
 include Process
 module Jekyll
   class Site
-    attr_reader :default_lang, :languages, :exclude_from_localization, :lang_vars, :lang_from_path, :fallback_canonical_to_default_lang
+    attr_reader :default_lang, :languages, :exclude_from_localization, :lang_vars, :lang_from_path, :fallback_canonical_to_default_lang, :serial_default_lang
     attr_accessor :file_langs, :active_lang
 
     def prepare
       @file_langs = {}
       fetch_languages
       @parallel_localization = config.fetch('parallel_localization', true)
+      @serial_default_lang = config.fetch('serial_default_lang', false)
       @lang_from_path = config.fetch('lang_from_path', false)
       @fallback_canonical_to_default_lang = config.fetch('fallback_canonical_to_default_lang', false)
       @exclude_from_localization = config.fetch('exclude_from_localization', []).map do |e|
@@ -34,14 +35,21 @@ module Jekyll
       prepare
       all_langs = ([@default_lang] + @languages).uniq
       if @parallel_localization
+        if @serial_default_lang
+          # Run the default language in the parent first to prime
+          process_language @default_lang
+          langs_to_fork = @languages - [@default_lang]
+        else
+          langs_to_fork = all_langs
+        end
         nproc = Etc.nprocessors
         pids = {}
         begin
-          all_langs.each do |lang|
+          langs_to_fork.each do |lang|
             pids[lang] = fork do
               process_language lang
             end
-            while pids.length >= (lang == all_langs[-1] ? 1 : nproc)
+            while pids.length >= (lang == langs_to_fork[-1] ? 1 : nproc)
               sleep 0.1
               pids.map do |pid_lang, pid|
                 next unless waitpid pid, Process::WNOHANG
@@ -52,7 +60,7 @@ module Jekyll
             end
           end
         rescue Interrupt
-          all_langs.each do |lang|
+          langs_to_fork.each do |lang|
             next unless pids.key? lang
 
             puts "Killing #{pids[lang]} : #{lang}"

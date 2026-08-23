@@ -30,13 +30,14 @@ languages: ["en", "sv", "de", "fr"]
 default_lang: "en"
 exclude_from_localization: ["javascript", "images", "css", "public", "sitemap", "CNAME"]
 parallel_localization: true
+serial_default_lang: true
 url: https://polyglot.untra.io
 ```
 These configuration preferences indicate
 - what i18n languages you wish to support
 - what is your default "fallback" language for your content
 - what root level files/folders are excluded from localization, based on if their paths start with any of the excluded regexp substrings. (this is different from the jekyll `exclude: [ .gitignore ]` ; you should `exclude` files and directories in your repo you dont want in your built site at all, and `exclude_from_localization` files and directories you want to see in your built site, but not in your sublanguage sites.)
-- whether to run language processing in parallel or serial. Set to `false` if building on Windows hosts, or if Polyglot collides with other Jekyll plugins.
+- whether to run language processing in parallel or serial. Set to `false` if building on Windows hosts, or if Polyglot collides with other Jekyll plugins. - If `parallel_localization` collides with other jekyll plugins, this setting makes polyglot build the default language first before processing the other language sites.
 - your jekyll website production url. Make sure this value is set; Polyglot requires this to relative site urls correctly, and to make functioning language switchers.
 
 The optional `lang_from_path: true` option enables getting the page language from a filepath segment seperated by `/` or `.`, e.g `de/first-one.md`, or `_posts/zh_HK/use-second-segment.md` , if the lang frontmatter isn't defined.
@@ -461,7 +462,7 @@ These are talented and considerate software developers across the world that hav
 * [@george-gca](https://github.com/george-gca) [pt-BR support](https://polyglot.untra.io/pt-BR/2024/02/29/localized-variables.md)
 * [@PanderMusubi](https://github.com/PanderMusubi) - 1.12 / jekyll-minimal-mistakes-polyglot demo
 * [@GruberMarkus](https://github.com/GruberMarkus) - redirect anchor support
-* [@rathboma](https://github.com/rathboma) - page.rendered_lang / sublanguage redirects
+* [@rathboma](https://github.com/rathboma) - page.rendered_lang / sublanguage redirects / serial_default_lang
 * [@manabu-nakamura](https://github.com/manabu-nakamura) - Japanese strings
 
 ### Other Websites Built with Polyglot
@@ -498,8 +499,10 @@ Feel free to open a PR and list your multilingual blog here you may want to shar
 * [x] - **site language**: hindi `hi`
 * [x] - **site language**: chinese Taiwan `zh-TW`
 * [x] - **site language**: portuguese Portugal `pt-PT`
-* [ ] - get whitelisted as an official github-pages jekyll plugin
 * [x] - update CI provider
+* [ ] - get to 512 github stars
+* [ ] - get whitelisted as an official github-pages jekyll plugin
+
 
 ## Copyright
 Copyright (c) Samuel Volin 2025. License: MIT
